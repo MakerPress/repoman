@@ -1,6 +1,7 @@
 #!/bin/python
 from openstack.compute import Compute
 
+
 instance_name = "test-rclocal"
 
 #
