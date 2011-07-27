@@ -1,4 +1,3 @@
-
 from openstack.compute import Compute
 compute = Compute(username="makerpressadmin", apikey="39a15325f2e67a3ff68d59b76f990616")
 
@@ -28,7 +27,8 @@ s = compute.servers.create("gold", image=im, flavor=fl, files=fileInfo)
 
 # pkInfo = { 
    '/root/.ssh/authorized_keys2' : 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA3A9wtS2JA/RhgKyBU+inwBWo/33YU1yMLjb1lpBKBm+uX0ilBZVN0bpOk7vPP8SGxo5q8UjcoXNDplC4hOsxAJTqOoTvW4R5xj+Cry8QK2WIqs/j6+nJlD1EaNI8DEPl9fBXNtTKr+lkguN0UGKU/GNrtyt8SrngfFkK5JpzxbsCRp8Sx/9gO6j96jHutzccPvpOs260bJ8btZcmmHhacgurVdu9E5rmbO20Kzsnb8S0z24NZnfyBsExt+UqzVKgSZSPzvRrdYVg+5T9UK6zEO7B7DgrW+ixujW24KlaNfNiCCyiE1EgyVQb3vxV/8iGJTh9EQ0ODbh3HRFIKIC9hw== odewahn@MacOdewahn.home',
-   '/home/git/.ssh/authorized_keys2': 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA3A9wtS2JA/RhgKyBU+inwBWo/33YU1yMLjb1lpBKBm+uX0ilBZVN0bpOk7vPP8SGxo5q8UjcoXNDplC4hOsxAJTqOoTvW4R5xj+Cry8QK2WIqs/j6+nJlD1EaNI8DEPl9fBXNtTKr+lkguN0UGKU/GNrtyt8SrngfFkK5JpzxbsCRp8Sx/9gO6j96jHutzccPvpOs260bJ8btZcmmHhacgurVdu9E5rmbO20Kzsnb8S0z24NZnfyBsExt+UqzVKgSZSPzvRrdYVg+5T9UK6zEO7B7DgrW+ixujW24KlaNfNiCCyiE1EgyVQb3vxV/8iGJTh9EQ0ODbh3HRFIKIC9hw== odewahn@MacOdewahn.home'}
+   '/home/git/.ssh/authorized_keys2': 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA3A9wtS2JA/RhgKyBU+inwBWo/33YU1yMLjb1lpBKBm+uX0ilBZVN0bpOk7vPP8SGxo5q8UjcoXNDplC4hOsxAJTqOoTvW4R5xj+Cry8QK2WIqs/j6+nJlD1EaNI8DEPl9fBXNtTKr+lkguN0UGKU/GNrtyt8SrngfFkK5JpzxbsCRp8Sx/9gO6j96jHutzccPvpOs260bJ8btZcmmHhacgurVdu9E5rmbO20Kzsnb8S0z24NZnfyBsExt+UqzVKgSZSPzvRrdYVg+5T9UK6zEO7B7DgrW+ixujW24KlaNfNiCCyiE1EgyVQb3vxV/8iGJTh9EQ0ODbh3HRFIKIC9hw== odewahn@MacOdewahn.home',
+'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAuhlfACrZ2zLQHetJL+0r7DWDV/HfE4bHT3NfBLF6wgQuQiQqjhwrECOX2SXp21OyySe27Jh5zPItidxGPPopxq+rJalaFv7ukqXi26k7BBiyxmaokN66jNS//S4eM748pL9cDnoJZtkkbo2fFEczhBNgZzXsq0dDYXDKSBlMwu3Bw1sRIOQK32lIyHGjs/96YzHyyjG+2sS87sInK3YTKwgVAYk5mERGJWSpJWCWXGrKgGkskbii6OLR6bIgiSaIrgYuNnGAHECtJv/h+Dai1ZIPtwRtm9wqGw90Y6Q502NP/nv/Oy9awnphM3MoLJ1gqe+y113dTTONV6qlOppIRQ== mrosedale@dhcp-245-30.east.ora.com'}
 
 # s = compute.servers.create("python-biblio", image=im, flavor=fl, files=pkInfo)
 
