@@ -1,38 +1,104 @@
 #!/bin/python
 from openstack.compute import Compute
+import simplejson as json
+import urllib
+import sys, getopt
 
-
-instance_name = "dev-validate-asciidoc"
 
 #
-# Make a list of master keys to install
+# Builds a server for a given project as defined in the Django interface
+# The URLs look something like this:
+#    http://localhost:8000/server/environment/json/
+
+# Help function that prints an error message
+def usage():
+   print '''
+      Correct usage is:
+         -s <url>   : Specifies source URL for JSON data that describes the project
+         -p         : Prints the JSON
+         -h         : Prints the help info
+   '''
+
+# Pulls the project infor from a given url
+def pull_project_info(url):
+   try:
+      dat = urllib.urlopen(url).read()
+      return json.loads(dat)
+   except IOError:
+      return None
+
+# This procedure creates a new Racspace server based on the infor in the configuration database
+# Specifically, it sets up the keys so that the collaborators can push and pull from the server
+def create_server(project, _username, _apikey, _image_name, _flavor_name):
+   instance_name = "prod-%s" % project["shortname"]
+   master_key = "\n".join(project["keys"])
+
+   fileInfo = { 
+      '/root/.ssh/authorized_keys2' : master_key,
+      '/home/git/.ssh/authorized_keys2': master_key
+   }
+
+   #Create a new image based on the given parameters
+   compute = Compute(username=_username, apikey=_apikey)
+   im = compute.images.find(name=_image_name)
+   fl = compute.flavors.find(name=_flavor_name)
+   s = compute.servers.create(instance_name, image=im, flavor=fl, files=fileInfo)
+
+   #Now print results
+   print "You can log into this server as root@%s" % s.public_ip
+
 #
-master_key_list = [
-"ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA3A9wtS2JA/RhgKyBU+inwBWo/33YU1yMLjb1lpBKBm+uX0ilBZVN0bpOk7vPP8SGxo5q8UjcoXNDplC4hOsxAJTqOoTvW4R5xj+Cry8QK2WIqs/j6+nJlD1EaNI8DEPl9fBXNtTKr+lkguN0UGKU/GNrtyt8SrngfFkK5JpzxbsCRp8Sx/9gO6j96jHutzccPvpOs260bJ8btZcmmHhacgurVdu9E5rmbO20Kzsnb8S0z24NZnfyBsExt+UqzVKgSZSPzvRrdYVg+5T9UK6zEO7B7DgrW+ixujW24KlaNfNiCCyiE1EgyVQb3vxV/8iGJTh9EQ0ODbh3HRFIKIC9hw== odewahn@MacOdewahn.home",
-"ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA1wJrcvsdDaCTRCH3IF6GD6CP78/3SKI1P6xLKs4lU76JNNzSt91KZW0Fp77fGJR/iwsDbgN8+luVLO2GOS8f+fd5y81yeNhUzFZsQ2WV35TCwFU8TSKq7GuoJarRVXBBFg59AwaV07vGH+Tv5J+Eo1F5IUJ6bfn2IjSdXRRhONzk7sn8VMa0Gy14YpP3157MaNLVow6MpozT3e6Pvm1plZYNKjpfjJ2cB+Os8OOEP8m+Y5PG70XyeOPy4eYyBFXezm5rXgoWB7TDUo3XLlnswgwtLhgmEu1aqxqEJ0Dp0H6nMUR+mSCr54Su14P/HNXMsnp2cInKAzTnxAQv3lKTrw== bjepson@Brian-Jepsons-MacBook-Air.local",
-"ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAxb5AGnZxxLpcVHe/TIedf1hRG1FTY4oF2tgM6X6YEY5wk+Di44yxKWcaTorxZuokKV/eNJlhLD+nbrwYlFV6TwPY9UlseD0XsRxyXARH5k8wjZAi69LwVBNm7E6EUc6hog+7w/bVy1OWkAJV8qrJeyh0QJUGCGlW1hBedSDy0huujhWKenltysj8CxiPpCLjgCzeCoc0exbf+YFpuEa0CmFSkc15vMhU/hM1oSaIjpux0AU2HUd0I3Wu7R9StjQEhO0hDdHvcHaW+1dEpSmarD+Eta5rqrEfkXX00xL5juGqaO3+PMj7DvV5+3WbB2lXau3QdZPAqhZ/ExkiBcLPYw== bjepson@Brian-Jepsons-MacBook-Pro.local",
-"ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAxOJb8NPlQ/wD7t/N2U1fo2UjGcn7tew80u/yHHrbSquYh6KoF6BCNRqOuCm9yI+Nva5K65zVXf60+OYWoAIAlsDupZ1JeQEA+T9xuKPr7Cf/h8MCQYSch9KKLzrs3b7lYz2jkCP3drp9q4LUOo3DYKwI6PompqIxuk/V5F1xYRf9BSZ13HXzTgp1GGdqHP0uJTLqdayG8y4UTY7sk6CRs5PO/lsDuqA0SQyFGLHavMBCaeh9YOnqf8BFNCfTv22WHLOGjvPGaLbf+k298BEmYS1lf1R1/IkyDuI5IGxJZMTmxaB1ZX2+n/wtiP2tbcLz8HYnCNsA62V+VuVRYmvX3Q== swallace@oreilly.com",
-"ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA3TnKh5672DO86fmvZ3cqDG8PtvkmgVDaKBhvQjF6x6BHM0HTAueVYPA/RHUNqTJd/cX09bT8qmPPPiUUJgImhOqCsko4+q9iQg6umEoKDkjJLyL/wsqB4Q/ph9bhGlc9jw4ox9HYAHsoNflpTScuewxkfVrOHTOUFBa8STbLzNReas45NCaJ6un4qE4rKZHqeg5JkTOwO6Yeb+hpRyVhsQEKHGR1EzH/LhCKGkvGnIdqsqh52lVFoWuJhkx5J15SLbf6w8Xqn/epbDJno4cgPj+mG/Kncu/7iA5Q76d+QoiBR28aBnSPpD21jM2DaXCZNzeA3Pnnb3HKmokmbucbjw== Greg@gabc.local"
-]
+# Main function to process command line args and call the scripts
+#
+def main (argv):
 
+   url = ""
+   print_flag = False
+   username = "makerpressadmin"
+   apikey = "39a15325f2e67a3ff68d59b76f990616"
+   image_name = "client-gold-v1.1"
+   flavor_name = "256 server"
 
-# Now create a compiled version of the master keys
-master_key = "\n".join(master_key_list)
+   try:
+      opts, args = getopt.getopt(argv, "hps:")   
+   except getopt.GetoptError:
+      usage()
+      sys.exit(2)
 
-fileInfo = { 
-   '/root/.ssh/authorized_keys2' : master_key,
-   '/home/git/.ssh/authorized_keys2': master_key
-}
+   # now process the arguments
+   for opt, arg in opts:
+      if opt == '-s':
+         url = arg
+      elif opt == '-h':
+         usage()
+         sys.exit()
+      elif opt == '-p':
+         print_flag = True
 
-#Grab a particular image
-compute = Compute(username="makerpressadmin", apikey="39a15325f2e67a3ff68d59b76f990616")
-im = compute.images.find(name="client-gold-v1.1")
-fl = compute.flavors.find(name="256 server")
-s = compute.servers.create(instance_name, image=im, flavor=fl, files=fileInfo)
+   # Make sure they supplied a source URL.  If they didn't, then bomb out
+   if len(url) == 0:
+      usage()
+      sys.exit()
+   
+   # Try to load the URL.  If it can't be found, then bomb out.
+   project = pull_project_info (url)
+   if not project:
+      print "Could not load %s" % url
+      sys.exit()
 
-#Now print results
-print "You can log into this server as root@%s" % s.public_ip
+   # Print the JSON if the print flag has been set
+   if print_flag :
+      print "Project Data"
+      print "------------"
+      print json.dumps(project,  sort_keys=False, indent=4)
 
+   if project['status'] == 'OK':
+      print "Creating server..."
+      create_server (project, username, apikey, image_name, flavor_name)
+   else:
+      print "The following error occurred:\n  %s" % project['msg']
 
+if __name__ == "__main__":
+    main(sys.argv[1:])
 
 
