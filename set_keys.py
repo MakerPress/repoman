@@ -30,48 +30,44 @@ def pull_project_info(url):
    except IOError:
       return None
 
+# This helper function splits the command string into component pieces so that it can be passed to process.call
+# It uses shlex.split, rather than the plain old split, because it does a better job with command line-style strings. 
+# (For exameple, it respecots the subquotes in the command).  Also note that SHLEX can't handle UNICODE, so 
+# this function converts it to ascii and then splits the args
+def cmd_fix(cmd):
+   s = cmd.encode("ascii","ignore")
+   return shlex.split(s)
+
 # This procedure creates a new Racspace server based on the infor in the configuration database
 # Specifically, it sets up the keys so that the collaborators can push and pull from the server
 def create_server(project, _username, _apikey, _image_name, _flavor_name):
-   instance_name = "prod-%s" % project["shortname"]
-   master_key = "\n".join(project["keys"])
 
-   fileInfo = { 
-      '/root/.ssh/authorized_keys2' : master_key,
-      '/home/git/.ssh/authorized_keys2': master_key
-   }
+   #  Make a file containing the keys we want to install
+   f = open("/tmp/keys.txt", 'w')
+   for key in project["keys"]:
+      f.write (key + "\n")
+   f.close()
 
-   #Create a new image based on the given parameters
+
+   #Pull up the ip address for the server holding the repo
    compute = Compute(username=_username, apikey=_apikey)
-   im = compute.images.find(name=_image_name)
-   fl = compute.flavors.find(name=_flavor_name)
-   s = compute.servers.create(instance_name, image=im, flavor=fl, files=fileInfo)
+   instance_name = "%s" % project["shortname"]
+   s = compute.servers.find(name=instance_name)
+
+   print "%s is located on %s" % (instance_name, s.public_ip)  
 
    #
-   # Now wait until the server is built
+   # copy the key file onto the new server
    #
-   stat = True
-   while stat:
-      s = compute.servers.find(name=instance_name)
-      print "... Building (~%d percent complete)" % s.progress
-      if s.status == "ACTIVE":
-         stat = False
-      time.sleep(5);
+   cmd = "scp -o 'StrictHostKeyChecking no' /tmp/keys.txt root@%s:/home/git/.ssh/authorized_keys2" % s.public_ip
+   rc = call(cmd_fix(cmd))
 
    #
-   # Set the correct permission on the authorized_keys2 file.  Note that we use shlex.split to 
-   # split the command string because it respects the subquotes in the command
+   # Set the correct permission on the authorized_keys2 file. 
    #
    cmd = "ssh -o 'StrictHostKeyChecking no' root@%s 'cd /home/git/.ssh; chown git:git authorized_keys2'" % s.public_ip
-   print cmd
-   rc = call(shlex.split(cmd))
+   rc = call(cmd_fix(cmd))
 
-   #Now print results
-   print "You can log into this server as root@%s" % s.public_ip
-
-#
-# Main function to process command line args and call the scripts
-#
 def main (argv):
 
    url = ""
@@ -115,7 +111,7 @@ def main (argv):
       print json.dumps(project,  sort_keys=False, indent=4)
 
    if project['status'] == 'OK':
-      print "Creating server..."
+      print "Setting keys..."
       create_server (project, username, apikey, image_name, flavor_name)
      
    else:
