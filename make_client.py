@@ -22,7 +22,7 @@ def usage():
          -h         : Prints the help info
    '''
 
-# Pulls the project infor from a given url
+# Pulls the project info from a given url
 def pull_project_info(url):
    try:
       dat = urllib.urlopen(url).read()
@@ -32,13 +32,12 @@ def pull_project_info(url):
 
 # This procedure creates a new Racspace server based on the infor in the configuration database
 # Specifically, it sets up the keys so that the collaborators can push and pull from the server
-def create_server(project, _username, _apikey, _image_name, _flavor_name):
-   instance_name = "prod-%s" % project["shortname"]
-   master_key = "\n".join(project["keys"])
+def create_server(url, project, _username, _apikey, _image_name, _flavor_name):
+   instance_name = project["shortname"]
+   master_key = "\n".join(project["root-keys"])
 
    fileInfo = { 
       '/root/.ssh/authorized_keys2' : master_key,
-      '/home/git/.ssh/authorized_keys2': master_key
    }
 
    #Create a new image based on the given parameters
@@ -58,16 +57,13 @@ def create_server(project, _username, _apikey, _image_name, _flavor_name):
          stat = False
       time.sleep(5);
 
-   #
-   # Set the correct permission on the authorized_keys2 file.  Note that we use shlex.split to 
-   # split the command string because it respects the subquotes in the command
-   #
-   cmd = "ssh -o 'StrictHostKeyChecking no' root@%s 'cd /home/git/.ssh; chown git:git authorized_keys2'" % s.public_ip
-   print cmd
-   rc = call(shlex.split(cmd))
 
    #Now print results
+   print "\nBuild complete."
+   print "Don't forget to set collaborator permissions:"
+   print "   python set_keys.py -s %s" % url
    print "You can log into this server as root@%s" % s.public_ip
+   
 
 #
 # Main function to process command line args and call the scripts
@@ -116,7 +112,7 @@ def main (argv):
 
    if project['status'] == 'OK':
       print "Creating server..."
-      create_server (project, username, apikey, image_name, flavor_name)
+      create_server (url, project, username, apikey, image_name, flavor_name)
      
    else:
       print "The following error occurred:\n  %s" % project['msg']

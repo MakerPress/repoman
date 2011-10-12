@@ -40,18 +40,18 @@ def cmd_fix(cmd):
 
 # This procedure creates a new Racspace server based on the infor in the configuration database
 # Specifically, it sets up the keys so that the collaborators can push and pull from the server
-def create_server(project, _username, _apikey, _image_name, _flavor_name):
+def set_root_keys(project, _username, _apikey, _image_name, _flavor_name):
 
    #  Make a file containing the keys we want to install
    f = open("/tmp/keys.txt", 'w')
-   for key in project["keys"]:
+   for key in project["collaborator-keys"]:
       f.write (key + "\n")
    f.close()
 
 
    #Pull up the ip address for the server holding the repo
    compute = Compute(username=_username, apikey=_apikey)
-   instance_name = "%s" % project["shortname"]
+   instance_name = project["shortname"]
    s = compute.servers.find(name=instance_name)
 
    print "%s is located on %s" % (instance_name, s.public_ip)  
@@ -112,7 +112,7 @@ def main (argv):
 
    if project['status'] == 'OK':
       print "Setting keys..."
-      create_server (project, username, apikey, image_name, flavor_name)
+      set_root_keys (project, username, apikey, image_name, flavor_name)
      
    else:
       print "The following error occurred:\n  %s" % project['msg']
