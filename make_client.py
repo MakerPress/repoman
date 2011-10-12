@@ -56,7 +56,7 @@ def main (argv):
    print_flag = False
    username = "makerpressadmin"
    apikey = "39a15325f2e67a3ff68d59b76f990616"
-   image_name = "client-gold-v1.1"
+   image_name = "gold-image-8"
    flavor_name = "256 server"
 
    try:
