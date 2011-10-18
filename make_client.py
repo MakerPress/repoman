@@ -11,7 +11,7 @@ import shlex
 #
 # Builds a server for a given project as defined in the Django interface
 # The URLs look something like this:
-#    http://localhost:8000/server/environment/json/
+#    http://localhost:8000/project/environment/json/
 
 # Help function that prints an error message
 def usage():
@@ -112,8 +112,7 @@ def main (argv):
 
    if project['status'] == 'OK':
       print "Creating server..."
-      create_server (url, project, username, apikey, image_name, flavor_name)
-     
+      create_server (url, project, username, apikey, image_name, flavor_name)     
    else:
       print "The following error occurred:\n  %s" % project['msg']
 
