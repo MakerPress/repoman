@@ -1,0 +1,61 @@
+These scripts are used to create new instances of the Gollum servers.
+
+make_client.py -- creates a new server using the current gold master Gollum image
+set_keys.py -- sets the permsiions and keys for collaborators.  This should be run
+   each time you update the list of collaborators.
+
+make_client.py
+--------------
+Run this script to create a new server with the latest Gollum image.  
+You must supply it with a URL that defines the project.  You get
+this URL in the Django app for managing the project.  Depending on RackSpace, it
+might take 2 or three minutes for the project to build and for the server to 
+be ready.
+
+Usage is:
+      -s <url>   : Specifies source URL for JSON data that describes the project
+      -p         : Prints the JSON
+      -h         : Prints the help info
+   
+
+Here's an example: 
+
+----
+$ python make_client.py -s http://admin.makerpress.com/selfpub/project/test-ano/json
+Creating server...
+... Building (~0 percent complete)
+... Building (~0 percent complete)
+... Building (~0 percent complete)
+... Building (~0 percent complete)
+... Building (~0 percent complete)
+... Building (~9 percent complete)
+... Building (~38 percent complete)
+... Building (~57 percent complete)
+... Building (~62 percent complete)
+... Building (~89 percent complete)
+... Building (~100 percent complete)
+... Building (~100 percent complete)
+... Building (~100 percent complete)
+
+Build complete.
+Don't forget to set collaborator permissions:
+   python set_keys.py -s http://admin.makerpress.com/selfpub/project/test-ano/json
+You can log into this server as root@50.57.81.57
+----
+
+
+
+Prerequisites
+-------------
+
+These scripts require the openstack.compute module.  To install it:
+
+----
+git clone https://github.com/jacobian/openstack.compute.git
+cd openstack.compute
+python setup.py install
+cd ..
+rm -rf openstatck.compute
+----
+
+
